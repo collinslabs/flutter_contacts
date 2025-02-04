@@ -424,19 +424,25 @@ public class SwiftFlutterContactsPlugin: NSObject, FlutterPlugin, FlutterStreamH
     private var externalResult: FlutterResult?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(
-            name: "github.com/QuisApp/flutter_contacts",
-            binaryMessenger: registrar.messenger()
-        )
-        let eventChannel = FlutterEventChannel(
-            name: "github.com/QuisApp/flutter_contacts/events",
-            binaryMessenger: registrar.messenger()
-        )
-        let rootViewController = UIApplication.shared.delegate!.window!!.rootViewController!
-        let instance = SwiftFlutterContactsPlugin(rootViewController)
-        registrar.addMethodCallDelegate(instance, channel: channel)
-        eventChannel.setStreamHandler(instance)
+    guard let window = UIApplication.shared.delegate?.window,
+          let rootViewController = window?.rootViewController else {
+        print("Could not find root view controller")
+        return
     }
+    
+    let channel = FlutterMethodChannel(
+        name: "github.com/QuisApp/flutter_contacts",
+        binaryMessenger: registrar.messenger()
+    )
+    let eventChannel = FlutterEventChannel(
+        name: "github.com/QuisApp/flutter_contacts/events",
+        binaryMessenger: registrar.messenger()
+    )
+    
+    let instance = SwiftFlutterContactsPlugin(rootViewController)
+    registrar.addMethodCallDelegate(instance, channel: channel)
+    eventChannel.setStreamHandler(instance)
+  }
 
     init(_ rootViewController: UIViewController) {
         self.rootViewController = rootViewController
