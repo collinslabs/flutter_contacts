@@ -424,12 +424,34 @@ public class SwiftFlutterContactsPlugin: NSObject, FlutterPlugin, FlutterStreamH
     private var externalResult: FlutterResult?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-    guard let window = UIApplication.shared.delegate?.window,
-          let rootViewController = window?.rootViewController else {
-        print("Could not find root view controller")
+    // Safely access the window and rootViewController
+    guard let window = UIApplication.shared.delegate?.window else {
+        print("UIApplication.shared.delegate?.window is nil")
         return
     }
-    
+
+    var rootViewController = window.rootViewController
+
+    // Log if rootViewController is nil
+    if rootViewController == nil {
+        print("rootViewController is nil")
+    }
+
+    // Avoid creating a new rootViewController unless absolutely necessary
+    // If the plugin doesn't need rootViewController, remove this logic entirely
+    if rootViewController == nil {
+        // If no rootViewController exists, log and return early
+        print("No rootViewController found. Plugin requires a valid rootViewController.")
+        return
+    }
+
+    // Ensure rootViewController is not nil before proceeding
+    guard let rootViewController = rootViewController else {
+        print("Could not find or create root view controller")
+        return
+    }
+
+    // Set up Flutter channels
     let channel = FlutterMethodChannel(
         name: "github.com/QuisApp/flutter_contacts",
         binaryMessenger: registrar.messenger()
@@ -438,11 +460,12 @@ public class SwiftFlutterContactsPlugin: NSObject, FlutterPlugin, FlutterStreamH
         name: "github.com/QuisApp/flutter_contacts/events",
         binaryMessenger: registrar.messenger()
     )
-    
+
+    // Initialize the plugin instance
     let instance = SwiftFlutterContactsPlugin(rootViewController)
     registrar.addMethodCallDelegate(instance, channel: channel)
     eventChannel.setStreamHandler(instance)
-  }
+}
 
     init(_ rootViewController: UIViewController) {
         self.rootViewController = rootViewController
